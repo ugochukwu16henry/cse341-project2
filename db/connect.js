@@ -1,29 +1,33 @@
-const { MongoClient } = require("mongodb");
+const dotenv = require("dotenv");
+dotenv.config();
 
-let db;
+const MongoClient = require("mongodb").MongoClient;
 
-const connectDB = async () => {
-  try {
-    const client = await MongoClient.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+let _db;
+
+const initDb = (callback) => {
+  if (_db) {
+    console.log("Db is already initialized!");
+    return callback(null, _db);
+  }
+  MongoClient.connect(process.env.MONGODB_URI)
+    .then((client) => {
+      _db = client;
+      callback(null, _db);
+    })
+    .catch((err) => {
+      callback(err);
     });
-
-    db = client.db("gameLibraryDB");
-    console.log("✅ MongoDB Connected Successfully");
-    return db;
-  } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error);
-    throw error;
-  }
 };
 
-const getDB = () => {
-  if (!db) {
-    throw new Error("Database not initialized. Call connectDB first.");
+const getDb = () => {
+  if (!_db) {
+    throw Error("Db not initialized");
   }
-  return db;
+  return _db;
 };
 
-module.exports = connectDB;
-module.exports.getDB = getDB;
+module.exports = {
+  initDb,
+  getDb,
+};
