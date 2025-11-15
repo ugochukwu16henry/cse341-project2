@@ -1,5 +1,13 @@
 // Get base URL dynamically
 const getBaseUrl = () => {
+  // If on localhost, use localhost
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    return window.location.origin;
+  }
+  // If on Render, use the Render URL
   return window.location.origin;
 };
 
