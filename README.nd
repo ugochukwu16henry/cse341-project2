@@ -26,7 +26,7 @@ A comprehensive RESTful API for managing video games and reviews, built with Exp
 ## 📁 Project Structure
 
 ```
-game-library-api/
+cse341-project2/
 ├── controllers/
 │   ├── games.js          # Game business logic
 │   └── reviews.js        # Review business logic
