@@ -1,38 +1,62 @@
-const express = require("express");
-const cors = require("cors");
-const  connectDB = require("./db/connect");
 require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const passport = require("passport");
+const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const connectDB = require("./config/database");
+require("./config/oauth");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
+connectDB();
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests from this IP, please try again later.",
+});
+
+app.use(helmet());
+app.use(limiter);
 app.use(cors());
-app.use(express.json());
-app.use(express.static("public"));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use("/", require("./routes"));
+app.use(passport.initialize());
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-    error: process.env.NODE_ENV === "development" ? err : {},
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/appointments", require("./routes/appointments"));
+app.use("/api/counsellors", require("./routes/counsellors"));
+app.use("/api/users", require("./routes/users"));
+
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Golobel Counselling API is running",
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Start server
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📚 API Documentation: http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Failed to connect to database:", err);
-    process.exit(1);
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
   });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Something went wrong!",
+    error: process.env.NODE_ENV === "production" ? {} : err.stack,
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+});
