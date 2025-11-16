@@ -1,62 +1,94 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
-const passport = require("passport");
 const cors = require("cors");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/database");
-require("./config/oauth");
+
+// Connect to database
+connectDB();
 
 const app = express();
 
-connectDB();
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later.",
-});
-
-app.use(helmet());
-app.use(limiter);
+// Middleware
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-app.use(passport.initialize());
-
+// Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/appointments", require("./routes/appointments"));
-app.use("/api/counsellors", require("./routes/counsellors"));
-app.use("/api/users", require("./routes/users"));
 
+// Health check route
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
     message: "Golobel Counselling API is running",
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
   });
 });
 
+// Root route
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Welcome to Golobel Counselling API",
+    version: "1.0.0",
+    endpoints: {
+      auth: {
+        "POST /api/auth/register": "Register new user",
+        "POST /api/auth/login": "Login user",
+        "GET /api/auth/me": "Get current user (protected)",
+      },
+      appointments: {
+        "GET /api/appointments": "Get user appointments (protected)",
+        "POST /api/appointments": "Create appointment (protected)",
+        "GET /api/appointments/:id": "Get single appointment (protected)",
+        "PUT /api/appointments/:id": "Update appointment (protected)",
+        "DELETE /api/appointments/:id": "Delete appointment (protected)",
+      },
+      health: {
+        "GET /api/health": "API health check",
+      },
+    },
+  });
+});
+
+// Handle 404
 app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: `Route not found: ${req.originalUrl}`,
+    availableRoutes: [
+      "GET /",
+      "GET /api/health",
+      "POST /api/auth/register",
+      "POST /api/auth/login",
+      "GET /api/auth/me",
+      "GET /api/appointments",
+      "POST /api/appointments",
+      "GET /api/appointments/:id",
+      "PUT /api/appointments/:id",
+      "DELETE /api/appointments/:id",
+    ],
   });
 });
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
+// Error handling middleware
+app.use((error, req, res, next) => {
+  console.error("Global error handler:", error);
+
+  res.status(error.status || 500).json({
     success: false,
-    message: "Something went wrong!",
-    error: process.env.NODE_ENV === "production" ? {} : err.stack,
+    message: error.message || "Internal Server Error",
+    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
   });
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(
+    `🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
+  );
+  console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`📍 Health: http://localhost:${PORT}/api/health`);
 });

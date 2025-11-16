@@ -5,28 +5,37 @@ const appointmentSchema = new mongoose.Schema(
     client: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: [true, "Client ID is required"],
     },
     counsellor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Counsellor",
-      required: true,
+      ref: "User",
+      required: [true, "Counsellor ID is required"],
     },
     appointmentDate: {
       type: Date,
-      required: true,
+      required: [true, "Appointment date is required"],
+      validate: {
+        validator: function (date) {
+          return date > new Date();
+        },
+        message: "Appointment date must be in the future",
+      },
     },
     duration: {
       type: Number,
       required: true,
-      min: 30,
-      max: 120,
+      min: [30, "Duration must be at least 30 minutes"],
+      max: [120, "Duration cannot exceed 120 minutes"],
       default: 60,
     },
     sessionType: {
       type: String,
-      enum: ["video", "phone", "in-person", "chat"],
       required: true,
+      enum: {
+        values: ["video", "phone", "in-person", "chat"],
+        message: "Session type must be video, phone, in-person, or chat",
+      },
     },
     status: {
       type: String,
@@ -41,8 +50,14 @@ const appointmentSchema = new mongoose.Schema(
       default: "scheduled",
     },
     notes: {
-      clientNotes: String,
-      counsellorNotes: String,
+      clientNotes: {
+        type: String,
+        maxlength: [500, "Client notes cannot exceed 500 characters"],
+      },
+      counsellorNotes: {
+        type: String,
+        maxlength: [1000, "Counsellor notes cannot exceed 1000 characters"],
+      },
     },
     emergencyContactPresent: {
       type: Boolean,
@@ -56,31 +71,25 @@ const appointmentSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
-      min: 0,
+      min: [0, "Amount cannot be negative"],
     },
     meetingLink: {
       type: String,
     },
-    cancellationReason: String,
-    rescheduledFrom: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Appointment",
+    cancellationReason: {
+      type: String,
+      maxlength: [200, "Cancellation reason cannot exceed 200 characters"],
     },
     clientSatisfaction: {
       rating: {
         type: Number,
-        min: 1,
-        max: 5,
+        min: [1, "Rating must be at least 1"],
+        max: [5, "Rating cannot exceed 5"],
       },
-      feedback: String,
-    },
-    followUpRequired: {
-      type: Boolean,
-      default: false,
-    },
-    nextAppointment: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Appointment",
+      feedback: {
+        type: String,
+        maxlength: [500, "Feedback cannot exceed 500 characters"],
+      },
     },
   },
   {

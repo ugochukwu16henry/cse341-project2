@@ -1,27 +1,51 @@
 const express = require("express");
-const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const { body, validationResult } = require("express-validator");
 const User = require("../models/User");
 const { protect } = require("../middleware/auth");
-const {
-  userValidation,
-  handleValidationErrors,
-} = require("../middleware/validation");
 
 const router = express.Router();
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+    expiresIn: "30d",
   });
 };
 
+// POST /api/auth/register - Register new user
 router.post(
   "/register",
-  userValidation,
-  handleValidationErrors,
+  [
+    body("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please provide a valid email"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+    body("firstName").notEmpty().trim().withMessage("First name is required"),
+    body("lastName").notEmpty().trim().withMessage("Last name is required"),
+    body("phone")
+      .optional()
+      .matches(/^\+?[\d\s-()]+$/)
+      .withMessage("Please provide a valid phone number"),
+    body("gender")
+      .optional()
+      .isIn(["male", "female", "other", "prefer-not-to-say"])
+      .withMessage("Gender must be male, female, other, or prefer-not-to-say"),
+  ],
   async (req, res) => {
     try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
       const {
         email,
         password,
@@ -32,6 +56,7 @@ router.post(
         gender,
       } = req.body;
 
+      // Check if user already exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(400).json({
@@ -40,6 +65,7 @@ router.post(
         });
       }
 
+      // Create new user
       const user = await User.create({
         email,
         password,
@@ -50,10 +76,12 @@ router.post(
         gender,
       });
 
+      // Generate JWT token
       const token = signToken(user._id);
 
       res.status(201).json({
         success: true,
+        message: "User registered successfully",
         token,
         user: {
           id: user._id,
@@ -64,94 +92,100 @@ router.post(
         },
       });
     } catch (error) {
+      console.error("Registration error:", error);
       res.status(500).json({
         success: false,
-        message: "Error creating user",
-        error: error.message,
+        message: "Error creating user account",
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Internal server error",
       });
     }
   }
 );
 
-router.post("/login", async (req, res) => {
+// POST /api/auth/login - Login user
+router.post(
+  "/login",
+  [
+    body("email")
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("Please provide a valid email"),
+    body("password").notEmpty().withMessage("Password is required"),
+  ],
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const { email, password } = req.body;
+
+      // Check if user exists and password is correct
+      const user = await User.findOne({ email }).select("+password");
+
+      if (!user || !(await user.correctPassword(password))) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
+
+      // Update last login
+      user.lastLogin = new Date();
+      await user.save();
+
+      // Generate JWT token
+      const token = signToken(user._id);
+
+      res.json({
+        success: true,
+        message: "Login successful",
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error during login",
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : "Internal server error",
+      });
+    }
+  }
+);
+
+// GET /api/auth/me - Get current user
+router.get("/me", protect, async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide email and password",
-      });
-    }
-
-    const user = await User.findOne({ email }).select("+password");
-
-    if (!user || !(await user.correctPassword(password, user.password))) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    user.lastLogin = new Date();
-    await user.save();
-
-    const token = signToken(user._id);
-
     res.json({
       success: true,
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
+      user: req.user,
     });
   } catch (error) {
+    console.error("Get user error:", error);
     res.status(500).json({
       success: false,
-      message: "Error logging in",
-      error: error.message,
+      message: "Error fetching user data",
     });
   }
-});
-
-router.get(
-  "/google",
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-  })
-);
-
-router.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-  }),
-  (req, res) => {
-    const token = signToken(req.user._id);
-
-    res.redirect(
-      `${
-        process.env.CLIENT_URL
-      }/auth/success?token=${token}&user=${JSON.stringify({
-        id: req.user._id,
-        email: req.user.email,
-        firstName: req.user.firstName,
-        lastName: req.user.lastName,
-        role: req.user.role,
-      })}`
-    );
-  }
-);
-
-router.get("/me", protect, async (req, res) => {
-  res.json({
-    success: true,
-    user: req.user,
-  });
 });
 
 module.exports = router;
