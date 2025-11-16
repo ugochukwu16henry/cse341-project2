@@ -1,0 +1,124 @@
+{
+  "name": "Golobel Counselling App API",
+  "version": "1.0.0",
+  "description": "A comprehensive mental health counselling platform API",
+  "baseUrl": "https://golobel-counselling.onrender.com/api",
+  "endpoints": {
+    "authentication": {
+      "register": {
+        "method": "POST",
+        "url": "/auth/register",
+        "description": "Register a new user",
+        "body": {
+          "email": "string (required)",
+          "password": "string (required, min 6 characters)",
+          "firstName": "string (required)",
+          "lastName": "string (required)",
+          "phone": "string (optional)",
+          "dateOfBirth": "date (optional)",
+          "gender": "string (optional)"
+        }
+      },
+      "login": {
+        "method": "POST",
+        "url": "/auth/login",
+        "description": "Login user",
+        "body": {
+          "email": "string (required)",
+          "password": "string (required)"
+        }
+      },
+      "googleOAuth": {
+        "method": "GET",
+        "url": "/auth/google",
+        "description": "Initiate Google OAuth flow"
+      }
+    },
+    "appointments": {
+      "create": {
+        "method": "POST",
+        "url": "/appointments",
+        "description": "Create a new appointment",
+        "headers": {
+          "Authorization": "Bearer <token>"
+        },
+        "body": {
+          "counsellor": "string (required, counsellor ID)",
+          "appointmentDate": "date (required)",
+          "duration": "number (required, 30-120 minutes)",
+          "sessionType": "string (required, video/phone/in-person/chat)",
+          "notes": "object (optional)"
+        }
+      },
+      "list": {
+        "method": "GET",
+        "url": "/appointments",
+        "description": "Get user's appointments",
+        "headers": {
+          "Authorization": "Bearer <token>"
+        }
+      },
+      "get": {
+        "method": "GET",
+        "url": "/appointments/:id",
+        "description": "Get specific appointment",
+        "headers": {
+          "Authorization": "Bearer <token>"
+        }
+      },
+      "update": {
+        "method": "PUT",
+        "url": "/appointments/:id",
+        "description": "Update appointment",
+        "headers": {
+          "Authorization": "Bearer <token>"
+        },
+        "body": {
+          "status": "string (optional)",
+          "counsellorNotes": "string (optional, counsellor only)",
+          "cancellationReason": "string (optional)",
+          "clientSatisfaction": "object (optional)"
+        }
+      },
+      "delete": {
+        "method": "DELETE",
+        "url": "/appointments/:id",
+        "description": "Delete appointment",
+        "headers": {
+          "Authorization": "Bearer <token>"
+        }
+      }
+    },
+    "counsellors": {
+      "list": {
+        "method": "GET",
+        "url": "/counsellors",
+        "description": "Get all counsellors with filtering",
+        "query": {
+          "specialization": "string (optional)",
+          "minRating": "number (optional)",
+          "sessionType": "string (optional)"
+        }
+      },
+      "get": {
+        "method": "GET",
+        "url": "/counsellors/:id",
+        "description": "Get specific counsellor details"
+      }
+    }
+  },
+  "security": {
+    "authentication": "JWT Tokens & Google OAuth 2.0",
+    "rateLimiting": "100 requests per 15 minutes",
+    "cors": "Enabled for cross-origin requests",
+    "helmet": "Security headers enabled"
+  },
+  "errorHandling": {
+    "400": "Bad Request - Validation Error",
+    "401": "Unauthorized - Invalid or missing token",
+    "403": "Forbidden - Insufficient permissions",
+    "404": "Not Found - Resource not found",
+    "429": "Too Many Requests - Rate limit exceeded",
+    "500": "Internal Server Error"
+  }
+}
