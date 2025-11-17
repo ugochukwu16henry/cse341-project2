@@ -1,8 +1,46 @@
-# Test health endpoint
-curl http://localhost:3000/api/health
+Make GET request to http://localhost:3000/api/books
 
-# Test root endpoint
-curl http://localhost:3000/
+POST - Create New Book (30 seconds)
+What to Show:
 
-# Try protected route (should fail without token)
-curl http://localhost:3000/api/appointments
+Make POST request to http://localhost:3000/api/books
+Set Content-Type header to application/json
+Use this body:
+
+json{
+  "title": "The Hobbit",
+  "author": "J.R.R. Tolkien",
+  "isbn": "978-0-547-92822-7",
+  "publishedYear": 1937,
+  "genre": "Fantasy",
+  "pages": 310,
+  "language": "English",
+  "available": true
+}
+
+
+
+PUT - Update Book (30 seconds)
+What to Show:
+
+Copy the _id from the book you just created
+Make PUT request to http://localhost:3000/api/books/{id}
+Update the book:
+
+json{
+  "title": "The Hobbit (Annotated Edition)",
+  "author": "J.R.R. Tolkien",
+  "isbn": "978-0-547-92822-7",
+  "publishedYear": 1937,
+  "genre": "Fantasy",
+  "pages": 366,
+  "language": "English",
+  "available": false
+}
+
+
+DELETE - Remove Book (20 seconds)
+What to Show:
+
+Make DELETE request to http://localhost:3000/api/books/{id}
+Show 200 OK response: {"message": "Book deleted successfully"}
