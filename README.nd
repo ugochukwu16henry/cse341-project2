@@ -1,0 +1,179 @@
+# Library Management API
+
+A RESTful API for managing a library system with books and authors. Built with Node.js, Express, and MongoDB.
+
+## Features
+
+- ✅ Full CRUD operations for Books and Authors
+- ✅ Data validation using express-validator
+- ✅ Error handling middleware
+- ✅ MongoDB integration
+- ✅ Two collections (Books with 8+ fields, Authors)
+- ✅ Professional API documentation
+- ✅ Ready for deployment to Render
+
+## Technology Stack
+
+- **Runtime:** Node.js
+- **Framework:** Express.js
+- **Database:** MongoDB
+- **Validation:** express-validator
+- **Environment:** dotenv
+
+## Project Structure
+
+```
+library-management-api/
+├── controllers/
+│   ├── booksController.js
+│   └── authorsController.js
+├── db/
+│   └── connection.js
+├── middleware/
+│   └── validation.js
+├── routes/
+│   ├── books.js
+│   └── authors.js
+├── .env.example
+├── .gitignore
+├── server.js
+├── package.json
+├── API_DOCUMENTATION.md
+└── README.md
+```
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone <your-repo-url>
+cd library-management-api
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+```
+
+4. Update `.env` with your MongoDB credentials:
+```
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/library_db?retryWrites=true&w=majority
+PORT=3000
+```
+
+5. Start the server:
+```bash
+npm start
+# or for development with auto-reload
+npm run dev
+```
+
+## API Endpoints
+
+### Books
+- `GET /api/books` - Get all books
+- `GET /api/books/:id` - Get book by ID
+- `POST /api/books` - Create new book
+- `PUT /api/books/:id` - Update book
+- `DELETE /api/books/:id` - Delete book
+
+### Authors
+- `GET /api/authors` - Get all authors
+- `GET /api/authors/:id` - Get author by ID
+- `POST /api/authors` - Create new author
+- `PUT /api/authors/:id` - Update author
+- `DELETE /api/authors/:id` - Delete author
+
+See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for detailed information.
+
+## Data Models
+
+### Book (8 fields)
+- title (String)
+- author (String)
+- isbn (String)
+- publishedYear (Number)
+- genre (String)
+- pages (Number)
+- language (String)
+- available (Boolean)
+
+### Author
+- firstName (String)
+- lastName (String)
+- birthYear (Number)
+- nationality (String)
+- biography (String)
+
+## Testing
+
+Use tools like Postman, Thunder Client, or cURL to test the endpoints.
+
+Example POST request:
+```bash
+curl -X POST http://localhost:3000/api/books \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "isbn": "978-0-7432-7356-5",
+    "publishedYear": 1925,
+    "genre": "Fiction",
+    "pages": 180,
+    "language": "English",
+    "available": true
+  }'
+```
+
+## Deployment to Render
+
+1. Push your code to GitHub (make sure `.env` is in `.gitignore`)
+2. Create a new Web Service on Render
+3. Connect your GitHub repository
+4. Add environment variables in Render dashboard:
+   - `MONGODB_URI`
+   - `PORT` (optional, Render will assign one)
+5. Deploy!
+
+## MongoDB Setup
+
+1. Create a MongoDB Atlas account
+2. Create a new cluster
+3. Create a database named `library_db`
+4. Create collections: `books` and `authors`
+5. Get your connection string and add it to `.env`
+
+## Error Handling
+
+The API includes comprehensive error handling:
+- 400: Bad Request (validation errors)
+- 404: Not Found (resource doesn't exist)
+- 500: Internal Server Error (server issues)
+
+## Validation
+
+All input data is validated using express-validator:
+- Required fields are checked
+- Data types are verified
+- String lengths are constrained
+- ISBN format is validated
+- Year values are validated
+
+## License
+
+ISC
+
+## Author
+
+Henry Ugochukwu
+
+## Links
+
+- GitHub Repository: []
+- Render Deployment: []
+- Demo Video: []
