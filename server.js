@@ -1,10 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const connectDB = require("./config/database");
-
-// Connect to database
-connectDB();
 
 const app = express();
 
@@ -12,11 +8,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/appointments", require("./routes/appointments"));
+// Import routes
+const authRoutes = require("./routes/auth");
+const appointmentRoutes = require("./routes/appointments");
 
-// Health check route
+// Use routes
+app.use("/api/auth", authRoutes);
+app.use("/api/appointments", appointmentRoutes);
+
+// Basic routes
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -26,7 +26,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Root route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -42,8 +41,6 @@ app.get("/", (req, res) => {
         "GET /api/appointments": "Get user appointments (protected)",
         "POST /api/appointments": "Create appointment (protected)",
         "GET /api/appointments/:id": "Get single appointment (protected)",
-        "PUT /api/appointments/:id": "Update appointment (protected)",
-        "DELETE /api/appointments/:id": "Delete appointment (protected)",
       },
       health: {
         "GET /api/health": "API health check",
@@ -66,29 +63,15 @@ app.use("*", (req, res) => {
       "GET /api/appointments",
       "POST /api/appointments",
       "GET /api/appointments/:id",
-      "PUT /api/appointments/:id",
-      "DELETE /api/appointments/:id",
     ],
-  });
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error("Global error handler:", error);
-
-  res.status(error.status || 500).json({
-    success: false,
-    message: error.message || "Internal Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
   });
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(
-    `🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
-  );
-  console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Health: http://localhost:${PORT}/api/health`);
+  console.log(`📍 Register: http://localhost:${PORT}/api/auth/register`);
+  console.log(`📍 Login: http://localhost:${PORT}/api/auth/login`);
 });

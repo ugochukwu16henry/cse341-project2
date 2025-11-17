@@ -1,0 +1,8 @@
+# Test health endpoint
+curl http://localhost:3000/api/health
+
+# Test root endpoint
+curl http://localhost:3000/
+
+# Try protected route (should fail without token)
+curl http://localhost:3000/api/appointments
