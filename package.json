@@ -13,7 +13,7 @@
     "api",
     "mongodb"
   ],
-  "author": "Your Name",
+  "author": "Henry Ugochukwu",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",

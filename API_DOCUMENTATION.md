@@ -2,7 +2,7 @@
 
 ## Base URL
 - Local: `http://localhost:3000`
-- Production: `https://your-app.onrender.com`
+- Production: `https://cse341-project2-1-fa5z.onrender.com/`
 
 ## Overview
 This API manages a library system with books and authors. It supports full CRUD operations with validation and error handling.
