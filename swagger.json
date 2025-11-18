@@ -8,7 +8,7 @@
       "name": "API Support"
     }
   },
-  "host": "https://cse341-project2-1-fa5z.onrender.com",
+  "host": "cse341-project2-1-fa5z.onrender.com",
   "basePath": "/",
   "schemes": ["https"],
   "securityDefinitions": {
