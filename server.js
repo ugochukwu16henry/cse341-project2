@@ -5,6 +5,9 @@ const passport = require("passport"); // <--- NEW
 require("./middleware/oauth"); // <--- NEW: Import OAuth strategy setup
 const { connectDB } = require("./db/connection");
 require("dotenv").config();
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +57,8 @@ app.get("/", (req, res) => {
   });
 });
 
+// Swagger API Documentation Route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
