@@ -1,13 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const session = require("express-session"); // <--- NEW
-const passport = require("passport"); // <--- NEW
-require("./middleware/oauth"); // <--- NEW: Import OAuth strategy setup
+const session = require("express-session");
+const passport = require("passport");
+require("./middleware/oauth");
 const { connectDB } = require("./db/connection");
 require("dotenv").config();
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger.json');
-
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,14 +12,14 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(
   cors({
-    origin: "*", // Adjust for production security
+    origin: "*",
     methods: "GET,POST,PUT,DELETE",
-    credentials: true, // Crucial for sessions/cookies
+    credentials: true,
   })
 );
 app.use(express.json());
 
-// Session Middleware (NEW)
+// Session Middleware
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -31,25 +28,30 @@ app.use(
   })
 );
 
-// Passport Initialization (NEW)
+// Passport Initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
-// === Authentication Routes (NEW) ===
-app.use("/", require("./routes/auth"));
+// === Swagger Documentation (NEW) ===
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // ===================================
 
-// Routes
+// Authentication Routes
+app.use("/", require("./routes/auth"));
+
+// API Routes
 app.use("/api/books", require("./routes/books"));
 app.use("/api/authors", require("./routes/authors"));
 
 // Home route
 app.get("/", (req, res) => {
-  // Check if user is logged in
   const isLoggedIn = req.isAuthenticated ? req.isAuthenticated() : false;
   res.json({
     message: "Library Management API",
     status: isLoggedIn ? "Authenticated" : "Unauthenticated",
+    documentation: "/api-docs", // NEW: Link to Swagger docs
     endpoints: {
       books: "/api/books",
       authors: "/api/authors",
@@ -57,8 +59,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// Swagger API Documentation Route
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -72,5 +72,8 @@ app.use((err, req, res, next) => {
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(
+      `API Documentation available at http://localhost:${PORT}/api-docs`
+    );
   });
 });
