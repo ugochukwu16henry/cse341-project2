@@ -8,15 +8,15 @@
       "name": "API Support"
     }
   },
-  "host": "cse341-project2-1-fa5z.onrender.com",
+  "host": "https://cse341-project2-1-fa5z.onrender.com/",
   "basePath": "/",
   "schemes": ["https"],
   "securityDefinitions": {
-    "OAuth2": {
-      "type": "oauth2",
-      "flow": "implicit",
-      "authorizationUrl": "/auth/google",
-      "description": "Google OAuth 2.0 authentication. Click 'Authorize' and log in with Google to access protected routes."
+    "SessionAuth": {
+      "type": "apiKey",
+      "in": "cookie",
+      "name": "connect.sid",
+      "description": "Session-based authentication using Google OAuth 2.0. To authenticate: 1) Open a new tab and navigate to /auth/google, 2) Log in with Google, 3) Return to this page and your requests will be authenticated via session cookie."
     }
   },
   "paths": {
@@ -98,7 +98,7 @@
         "description": "Creates a new book in the database. **Requires authentication via Google OAuth.**",
         "security": [
           {
-            "OAuth2": []
+            "SessionAuth": []
           }
         ],
         "parameters": [
@@ -169,7 +169,7 @@
         "description": "Updates an existing book by its ID. **Requires authentication via Google OAuth.**",
         "security": [
           {
-            "OAuth2": []
+            "SessionAuth": []
           }
         ],
         "parameters": [
