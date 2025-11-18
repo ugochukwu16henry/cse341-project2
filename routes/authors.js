@@ -1,29 +1,33 @@
 const express = require("express");
 const router = express.Router();
-const authorsController = require("../controllers/authorsController");
-const {
-  validateAuthor,
-  validateObjectId,
-} = require("../middleware/validation");
+const booksController = require("../controllers/booksController");
+const { validateBook, validateObjectId } = require("../middleware/validation");
+const { isAuthenticated } = require("../middleware/is-authenticated"); // <--- NEW
 
-// GET all authors
-router.get("/", authorsController.getAllAuthors);
+// GET all books (Public/Unprotected)
+router.get("/", booksController.getAllBooks);
 
-// GET single author by ID
-router.get("/:id", validateObjectId, authorsController.getAuthorById);
+// GET single book by ID (Public/Unprotected)
+router.get("/:id", validateObjectId, booksController.getBookById);
 
-// POST create new author
-router.post("/", validateAuthor, authorsController.createAuthor);
+// POST create new book (Protected)
+router.post("/", isAuthenticated, validateBook, booksController.createBook); // <--- PROTECTED
 
-// PUT update author
+// PUT update book (Protected)
 router.put(
   "/:id",
+  isAuthenticated,
   validateObjectId,
-  validateAuthor,
-  authorsController.updateAuthor
-);
+  validateBook,
+  booksController.updateBook
+); // <--- PROTECTED
 
-// DELETE author
-router.delete("/:id", validateObjectId, authorsController.deleteAuthor);
+// DELETE book (Protected)
+router.delete(
+  "/:id",
+  isAuthenticated,
+  validateObjectId,
+  booksController.deleteBook
+); // <--- PROTECTED
 
 module.exports = router;

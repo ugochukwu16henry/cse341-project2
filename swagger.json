@@ -1,0 +1,580 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Library Management API",
+    "description": "A RESTful API for managing books and authors with OAuth authentication",
+    "version": "2.0.0",
+    "contact": {
+      "name": "API Support"
+    }
+  },
+  "host": "https://cse341-project2-1-fa5z.onrender.com",
+  "basePath": "/",
+  "schemes": ["https"],
+  "securityDefinitions": {
+    "OAuth2": {
+      "type": "oauth2",
+      "flow": "implicit",
+      "authorizationUrl": "/auth/google",
+      "description": "Google OAuth 2.0 authentication. Click 'Authorize' and log in with Google to access protected routes."
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["General"],
+        "summary": "Get API information and authentication status",
+        "description": "Returns basic API information and whether the user is authenticated",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Library Management API"
+                },
+                "status": {
+                  "type": "string",
+                  "example": "Authenticated"
+                },
+                "endpoints": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Initiate Google OAuth login",
+        "description": "Redirects user to Google OAuth consent screen. After successful login, user will be redirected back to the application.",
+        "responses": {
+          "302": {
+            "description": "Redirect to Google OAuth"
+          }
+        }
+      }
+    },
+    "/logout": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Log out current user",
+        "description": "Destroys the user session and logs out the current user",
+        "responses": {
+          "302": {
+            "description": "Redirect to home page after logout"
+          }
+        }
+      }
+    },
+    "/api/books": {
+      "get": {
+        "tags": ["Books"],
+        "summary": "Get all books",
+        "description": "Returns a list of all books in the database. This endpoint is public and does not require authentication.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Book"
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Books"],
+        "summary": "Create a new book (Protected)",
+        "description": "Creates a new book in the database. **Requires authentication via Google OAuth.**",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "book",
+            "description": "Book object to be created",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BookInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Book created successfully",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "Validation error - invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/books/{id}": {
+      "get": {
+        "tags": ["Books"],
+        "summary": "Get a book by ID",
+        "description": "Returns a single book by its MongoDB ObjectId. This endpoint is public and does not require authentication.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the book"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "Invalid ObjectId format"
+          },
+          "404": {
+            "description": "Book not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Books"],
+        "summary": "Update a book (Protected)",
+        "description": "Updates an existing book by its ID. **Requires authentication via Google OAuth.**",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the book"
+          },
+          {
+            "in": "body",
+            "name": "book",
+            "description": "Updated book object",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BookInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Book updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid ObjectId"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "404": {
+            "description": "Book not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Books"],
+        "summary": "Delete a book (Protected)",
+        "description": "Deletes a book from the database by its ID. **Requires authentication via Google OAuth.**",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the book"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Book deleted successfully"
+          },
+          "400": {
+            "description": "Invalid ObjectId format"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "404": {
+            "description": "Book not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/authors": {
+      "get": {
+        "tags": ["Authors"],
+        "summary": "Get all authors",
+        "description": "Returns a list of all authors in the database. This endpoint is public and does not require authentication.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Author"
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Authors"],
+        "summary": "Create a new author (Protected)",
+        "description": "Creates a new author in the database. **Requires authentication via Google OAuth.**",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "author",
+            "description": "Author object to be created",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthorInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Author created successfully",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          },
+          "400": {
+            "description": "Validation error - invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/authors/{id}": {
+      "get": {
+        "tags": ["Authors"],
+        "summary": "Get an author by ID",
+        "description": "Returns a single author by their MongoDB ObjectId. This endpoint is public and does not require authentication.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the author"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          },
+          "400": {
+            "description": "Invalid ObjectId format"
+          },
+          "404": {
+            "description": "Author not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Authors"],
+        "summary": "Update an author (Protected)",
+        "description": "Updates an existing author by their ID. **Requires authentication via Google OAuth.**",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the author"
+          },
+          {
+            "in": "body",
+            "name": "author",
+            "description": "Updated author object",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthorInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Author updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Author"
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid ObjectId"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "404": {
+            "description": "Author not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Authors"],
+        "summary": "Delete an author (Protected)",
+        "description": "Deletes an author from the database by their ID. **Requires authentication via Google OAuth.**",
+        "security": [
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string",
+            "description": "MongoDB ObjectId of the author"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Author deleted successfully"
+          },
+          "400": {
+            "description": "Invalid ObjectId format"
+          },
+          "401": {
+            "description": "Unauthorized - authentication required"
+          },
+          "404": {
+            "description": "Author not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Book": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "description": "MongoDB ObjectId"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "isbn": {
+          "type": "string"
+        },
+        "publishedYear": {
+          "type": "integer"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "pages": {
+          "type": "integer"
+        },
+        "language": {
+          "type": "string"
+        }
+      }
+    },
+    "BookInput": {
+      "type": "object",
+      "required": ["title", "author", "isbn", "publishedYear", "genre", "pages", "language"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "example": "The Great Gatsby"
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1,
+          "example": "F. Scott Fitzgerald"
+        },
+        "isbn": {
+          "type": "string",
+          "pattern": "^[0-9-]+$",
+          "example": "978-0-7432-7356-5"
+        },
+        "publishedYear": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 2100,
+          "example": 1925
+        },
+        "genre": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Fiction"
+        },
+        "pages": {
+          "type": "integer",
+          "minimum": 1,
+          "example": 180
+        },
+        "language": {
+          "type": "string",
+          "minLength": 1,
+          "example": "English"
+        }
+      }
+    },
+    "Author": {
+      "type": "object",
+      "properties": {
+        "_id": {
+          "type": "string",
+          "description": "MongoDB ObjectId"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "birthDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "nationality": {
+          "type": "string"
+        },
+        "biography": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        },
+        "awards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "AuthorInput": {
+      "type": "object",
+      "required": ["firstName", "lastName", "birthDate", "nationality", "biography", "website", "awards"],
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Ernest"
+        },
+        "lastName": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Hemingway"
+        },
+        "birthDate": {
+          "type": "string",
+          "format": "date",
+          "example": "1899-07-21"
+        },
+        "nationality": {
+          "type": "string",
+          "minLength": 1,
+          "example": "American"
+        },
+        "biography": {
+          "type": "string",
+          "minLength": 10,
+          "example": "Ernest Hemingway was an American novelist and short-story writer known for his economical and understated style."
+        },
+        "website": {
+          "type": "string",
+          "format": "uri",
+          "example": "https://www.hemingwaysociety.org"
+        },
+        "awards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "example": ["Nobel Prize in Literature", "Pulitzer Prize"]
+        }
+      }
+    }
+  }
+}
