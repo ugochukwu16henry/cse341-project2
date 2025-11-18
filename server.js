@@ -12,9 +12,13 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "http://localhost:3000",
+      "https://cse341-project2-1-fa5z.onrender.com",
+    ],
     methods: "GET,POST,PUT,DELETE",
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
