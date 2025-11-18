@@ -8,7 +8,7 @@
       "name": "API Support"
     }
   },
-  "host": "cse341-project2-1-fa5z.onrender.com/",
+  "host": "cse341-project2-1-fa5z.onrender.com",
   "basePath": "/",
   "schemes": ["https"],
   "securityDefinitions": {
@@ -217,7 +217,7 @@
         "description": "Deletes a book from the database by its ID. **Requires authentication via Google OAuth.**",
         "security": [
           {
-            "OAuth2": []
+            "SessionAuth": []
           }
         ],
         "parameters": [
@@ -274,7 +274,7 @@
         "description": "Creates a new author in the database. **Requires authentication via Google OAuth.**",
         "security": [
           {
-            "OAuth2": []
+            "SessionAuth": []
           }
         ],
         "parameters": [
@@ -345,7 +345,7 @@
         "description": "Updates an existing author by their ID. **Requires authentication via Google OAuth.**",
         "security": [
           {
-            "OAuth2": []
+            "SessionAuth": []
           }
         ],
         "parameters": [
@@ -393,7 +393,7 @@
         "description": "Deletes an author from the database by their ID. **Requires authentication via Google OAuth.**",
         "security": [
           {
-            "OAuth2": []
+            "SessionAuth": []
           }
         ],
         "parameters": [
